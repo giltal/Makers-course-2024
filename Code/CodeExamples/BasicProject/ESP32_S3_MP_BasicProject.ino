@@ -3,16 +3,18 @@
  Created:	12/6/2024 9:25:31 AM
  Author:	97254
 */
+
 #include "TFT_eSPI.h"
 #include "pngAux.h"
 #include "FS.h"
 #include "SD.h"
 #include "SPI.h"
 
-pngObject breakOutLogo,ghostImg;
+pngObject breakOutLogo,spriteImg,bgImg;
 
 TFT_eSPI lcd = TFT_eSPI();
 TFT_eSprite sampleSprite = TFT_eSprite(&lcd);
+TFT_eSprite bgSprite = TFT_eSprite(&lcd);
 
 #define RGB_TO_565(R,G,B) ((unsigned short)(((G >> 3) | ((B << 3) & 0xE0)) << 8) | ((R & 0xF8) | (B >> 5)))
 
@@ -62,8 +64,10 @@ void setup()
 	lcd.setRotation(1);
 	lcd.setSwapBytes(true);
 
-	sampleSprite.createSprite(100, 100);
+	sampleSprite.createSprite(36, 65);
 	sampleSprite.setSwapBytes(true);
+	bgSprite.createSprite(320, 67);
+	bgSprite.setSwapBytes(true);
 
 	SDspi.begin(10, 44, 43, 0xff);//RX-44,TX-43
 	if (!SD.begin(4, SDspi, 10000000, "/sd", 5))
@@ -81,19 +85,19 @@ void setup()
 // the loop function runs over and over again until power down or reset
 void loop() 
 {
-	bool logoLoaded = false, ghostLoaded = false;
+	bool logoLoaded = false, imageLoaded = false;
 	if (SDmountOK) 
 	{
 		logoLoaded = loadPngFromSDcard("/breakout_logo.png", &breakOutLogo, true, false);
-		ghostLoaded = loadPngFromSDcard("/ghost.png", &ghostImg, true, false);
+		imageLoaded = (loadPngFromSDcard("/spaceship.png", &spriteImg, true, true) && loadPngFromSDcard("/starsBG.png", &bgImg, true, false));
 	}
 	if (logoLoaded)
 	{
 		lcd.pushImage(0, 0, 320, 240, (unsigned short*)breakOutLogo.data);
 	}
-	if (ghostLoaded)
+	if (imageLoaded)
 	{
-		sampleSprite.pushImage(0, 0, 100, 100, (unsigned short*)ghostImg.data);
+		sampleSprite.pushImage(0, 0, 36, 65, (unsigned short*)spriteImg.data);
 	}
 
 	while (!A_PRESSED);
@@ -102,20 +106,24 @@ void loop()
 	lcd.fillScreen(RGB_TO_565(0,0,0));
 	lcd.setTextColor(RGB_TO_565(50,255,0));
 	lcd.setTextSize(4);
-	lcd.drawString("A Pressed", 50, 104);
+	lcd.drawString("Sprite Demo", 40, 80);
 	
 	int i;
-	if (ghostLoaded)
+	if (imageLoaded)
 	{
 		while (1)
 		{
-			for (i = 0; i < 220; i++)
+			for (i = 0; i < 280; i++)
 			{
-				sampleSprite.pushSprite(i, 140);
+				bgSprite.pushImage(0, 0, 320, 67, (unsigned short*)bgImg.data);
+				sampleSprite.pushToSprite(&bgSprite, i, 1, 0xffff);
+				bgSprite.pushSprite(0, 140);
 			}
-			for (i = 220; i > 0; i--)
+			for (i = 280; i > 0; i--)
 			{
-				sampleSprite.pushSprite(i, 140);
+				bgSprite.pushImage(0, 0, 320, 67, (unsigned short*)bgImg.data);
+				sampleSprite.pushToSprite(&bgSprite, i, 1, 0xffff);
+				bgSprite.pushSprite(0, 140);
 			}
 		}
 	}
