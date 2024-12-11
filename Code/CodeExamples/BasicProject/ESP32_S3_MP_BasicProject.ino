@@ -69,7 +69,7 @@ void setup()
 	bgSprite.createSprite(320, 67);
 	bgSprite.setSwapBytes(true);
 
-	SDspi.begin(10, 44, 43, 0xff);//RX-44,TX-43
+	SDspi.begin(10, 44, 43, 18);//RX-44,TX-43
 	if (!SD.begin(4, SDspi, 10000000, "/sd", 5))
 	{
 		printf("Failed to mount SD card!\n");
