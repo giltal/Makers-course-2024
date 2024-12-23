@@ -94,7 +94,7 @@ void wifiTaskCode(void* pvParameters)
 	AsyncElegantOTA.begin(&server);
 	server.begin();
 	int numOfClientsConnected;
-	unsigned int reconnectCounter = 0;
+	unsigned int reconnectCounter = 50;
 
 	while (1)
 	{
@@ -120,7 +120,7 @@ void wifiTaskCode(void* pvParameters)
 			{
 				wifiStatusFlag = WIFI_STATUS_TRYING_TO_CONNECT_TO_AP;
 				reconnectCounter++;
-				if (reconnectCounter > 50)
+				if (reconnectCounter >= 50)
 				{
 					reconnectCounter = 0;
 					WiFi.disconnect();
@@ -301,6 +301,11 @@ void loop()
 	lcd.printf("AP iP: %s\n", WiFi.softAPIP().toString().c_str());
 	lcd.drawCircle(305, 20, 13, RGB_TO_565(255, 255, 255));
 	lcd.drawCircle(305, 60, 13, RGB_TO_565(255, 255, 255));
+	// IOs
+	lcd.fillCircle(80, 200, 27, RGB_TO_565(255, 255, 255));
+	lcd.fillCircle(160, 200, 27, RGB_TO_565(255, 255, 255));
+	lcd.fillCircle(240, 200, 27, RGB_TO_565(255, 255, 255));
+
 	bool drawIP = true;
 	while (1)
 	{
@@ -331,6 +336,10 @@ void loop()
 		{
 			lcd.fillCircle(305, 20, 12, RGB_TO_565(0, 0, 0));
 		}
+		// Handle Virtual IOs
+		lcd.fillCircle(80, 200, 25, RGB_TO_565(255, 0, 0) * IO[0]);
+		lcd.fillCircle(160, 200, 25, RGB_TO_565(0, 255, 0) * IO[1]);
+		lcd.fillCircle(240, 200, 25, RGB_TO_565(0, 0, 255) * IO[2]);
 		delay(1000);
 	}
 }
